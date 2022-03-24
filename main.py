@@ -114,6 +114,7 @@ if __name__ == '__main__':
                 pyplot.show()  # Show the cumulative sum plot
 
                 # Prints out the first three eigenvectors
+                print("First 3 eigenvectors:")
                 print(sorted_vectors[0])
                 print(sorted_vectors[1])
                 print(sorted_vectors[2])
@@ -123,7 +124,43 @@ if __name__ == '__main__':
                 projected_data = numpy.dot(two_eig, item_lists)
                 pyplot.scatter(projected_data[0], projected_data[1])
                 pyplot.title("Projection of Agglomeration data onto first two eigenvectors")
+                pyplot.xlabel('X-Values')
+                pyplot.ylabel('Y-Values')
                 pyplot.show()
+
+                # We utilize the 'Knee' method from K-means to determine the optimal amount of clusters
+                sum_square = []
+                for i in range(1, 11):
+                    k_means = KMeans(n_clusters=i, init='k-means++', max_iter=300, n_init=10, random_state=0)
+                    k_means.fit(projected_data.reshape(-1, 1))
+                    sum_square.append(k_means.inertia_)
+                pyplot.plot(range(1, 11), sum_square)
+                pyplot.title('Elbow Method')
+                pyplot.xlabel('Number of clusters')
+                pyplot.ylabel('Within-Cluster Sum of Square')
+                pyplot.show()
+
+                # We perform k-means on the optimal amount of clusters (in this case, it was 4)
+                k_means = KMeans(n_clusters=4, init='k-means++', max_iter=300, n_init=10, random_state=0)
+                pred_y = k_means.fit_predict(projected_data.reshape(-2, 2))
+                pyplot.scatter(projected_data[0], projected_data[1])
+                pyplot.scatter(k_means.cluster_centers_[:, 0], k_means.cluster_centers_[:, 1], s=300, c='red')
+                pyplot.title("Re-projection of Cluster COMs onto first two eigenvectors")
+                pyplot.xlabel('X-Values')
+                pyplot.ylabel('Y-Values')
+                pyplot.show()
+
+                # Print out the center of mass for all the clusters
+                print()
+                print("Cluster Centers for K-means:")
+                for com in k_means.cluster_centers_:
+                    print(com)
+
+                # Print out the vector you get after re-projection
+                print()
+                print("Re-projected values:")
+                re_project = projected_data = numpy.dot(k_means.cluster_centers_, two_eig)
+                print(re_project)
 
             csv_file.close()
 
